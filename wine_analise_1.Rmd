@@ -1,0 +1,393 @@
+
+---
+title: "Data Analysis and Statistical Hypothesis of Physicochemical Properties in Red Wine Samples from Vinho Verde, Portugal" 
+author: "Karina Cramer"
+date: "`r Sys.Date()`"
+output:
+   html_document:
+    toc: true
+    toc_depth: 2
+    css:  
+---
+
+## 1. Introduction
+
+#### 1.a Case Study Motivation
+
+  Wines are originally alcoholic beverages obtained from total or partial fermentation of fruits specially of grape. The wine industry is a growing industry. “The U.S. wine market size was estimated at USD 81.33 billion in 2023 and is expected to expand at a CAGR of 5.4% from 2024 to 2030 (Grand View Research, 2024).
+
+  While wine preferences are subjective and vary by individual sensory perception, wine quality is influenced by measurable physicochemical properties. But do these physicochemical factors significantly impact sensory wine tasting? Understanding these relationships can help winemakers optimize production and improve overall wine quality (Cortez et al., 2009). 
+  
+####  1.b Objective
+
+  This case study aims to conduct statistical hypothesis testing to evaluate whether specific physicochemical attributes influence sensory wine tasting. Using Welch’s t-test in R, along with the Benjamini-Hochberg (BH) correction method for multiple hypothesis testing, we will analyze differences in physicochemical properties between wines rated 3 and 4 (lower quality) and 7 (higher quality).
+
+  The goal is to perform data analysis and statistical testing on the Vinho Verde red wines dataset and determine whether there are significant differences in the following physicochemical attributes: fixed acidity, volatile acidity, citric acid, residual sugar, chlorides, free sulfur dioxide, total sulfur dioxide, density, pH, sulphates, and alcohol.
+
+  To achieve this, we will approach the null hypothesis (H₀), which assumes no significant difference in physicochemical properties, and the alternative hypothesis (H₁), which posits that there is a significant difference. If the statistical tests indicate a p-value less than 0.05, the null hypothesis will be rejected, providing evidence for a difference in the physicochemical properties of wines rated differently and suggesting a potential influence on sensory wine tasting. Additional visualizations will be presented using boxplots for easier interpretation.
+
+
+##  2. Data 
+
+####  2.a Data Source:
+
+This study uses as samples of Vinho Verde, red wine products from the Minho (northwest) region of Portugal  (Cortez et al., 2009).
+
+   The data were collected from May/2004 to February/2007 using only protected designation of origin samples that were tested at the official certification entity (CVRVV). The CVRVV is an inter-professional organization with the goal of improving the quality and marketing of vinho verde. The data were recorded by a computerized system (iLab), which automatically manages the process of wine sample testing from producer requests to laboratory and sensory analysis. Each entry denotes a given test (analytical or sensory) and the final database was exported into a single sheet (.csv) (Cortez et al., 2009).
+
+####   2b Original collected Data Structure:
+
+ The Data Frame of red wine was stored in a Tibble format with numeric columns. It includes; Rows: 1,599 and Columns: 12. The physicochemical attributes selected for the analyses include:
+
+ fixed acidity    
+volatile acidity
+citric acid         
+residual sugar     
+chlorides         
+free sulfur dioxide 
+total sulfur dioxide
+density          
+pH                 
+sulphates    
+alcohol     
+quality
+
+ Regarding the quality, each sample was evaluated by a minimum of three sensory assessors (using blind tastes), which graded the wine on a scale that ranges from 0 (very bad) to 10 (excellent). The final quality value score was given by the median of those 3 evaluations.  In this case the study selected only samples that had significant differences in quality values. Taking in consideration that there were no results lower then 3 and higher then 7. Quality values selected were the lowest of 3 and 4 and highwest of 7. The decision of two ranges for lowest quality was also based on the amount of data entries for each quality and with the purpose to decrease sample size difference.
+ 
+#### 2.b Data Limitations:
+
+  The dataset has several limitations that may affect the depth of analysis:
+  
+#### Grape and Harvest Information:
+ The dataset does not include details about the type of grape used or information on the harvest year. These factors are known to influence wine quality, and their absence may limit the ability to fully understand the relationship between physicochemical properties and wine quality.
+
+
+##### Absence of Expert Sensory Insights:
+ The dataset does not contain subjective sensory evaluations or expert insights, which could provide valuable context for understanding the sensory aspects of wine quality. This limitation means that the analysis will be based solely on the objective physicochemical factors and not on how experts or consumers perceive quality.
+
+
+##### Limited Quality Range:
+ The dataset contains a range of quality scores, but it may not fully represent the extremes of wine quality (e.g., very low or very high scores), which could skew certain findings or limit the generalizability of results.
+
+##### Relation between the physicochemical attributes
+  The focus of this case study is based on the data Statistical hypothesis of each individual physicochemical with the two different quality groups . No further study for the relation between each physicochemical to one another was made. 
+ 
+## 3. Methodology
+
+#### 3.a Approach:
+
+After filtering and cleaning, this study will employ statistical hypothesis testing with two hypotheses for each physicochemical property based on the final p-value results:
+
+##### Null Hypothesis (H₀):
+There is no significant difference in the physicochemical properties between wines rated 3, 4, and 7.
+
+##### Alternative Hypothesis (H₁):
+There is a significant difference in the physicochemical properties between wines rated 3, 4, and 7.
+
+#### 3.b Statistical Tests:
+
+##### Welch’s t-test:
+  Welch’s t-test is chosen because it is robust to unequal variances between the groups, which is important since we are comparing wines that may have different variances in their physicochemical properties. This makes it a more reliable choice than the standard t-test, which assumes equal variances.
+
+##### Benjamini-Hochberg (BH) Correction:
+  The Benjamini-Hochberg (BH) correction is applied to control the false discovery rate (FDR) when performing multiple hypothesis tests. Since we are testing multiple physicochemical properties, the BH correction helps to minimize the likelihood of Type I errors (false positives), providing a more accurate overall result.
+
+##  4. Analysis
+
+
+#### Vizualing the data 
+```{r}
+#Accessing libraries
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(readr)
+library(DT)
+library(tibble)
+```
+
+```{r}
+# acessing the data
+winequality_red <- read_delim("~/Desktop/wine+quality/winequality-red.csv", 
+    delim = ";", escape_double = FALSE, trim_ws = TRUE)
+head(winequality_red)
+glimpse(winequality_red)
+```
+
+#### 4.a Data Filtering:
+
+The Original dataframe was filtered into two new dataframes to present only 3, 4 and 7 on the quality column 
+
+```{r}
+#Filtering my data for lower (3,4) and higher (7)  quality only
+wine_low_quality_ <- winequality_red %>%
+  filter(quality %in% c(3, 4))
+wine_high_quality <- winequality_red %>%
+  filter(quality == 7)
+```
+The new filtered dataframes was combine in one new dataframe and added a new column as quality_group with a lower qualidade and higher quality type
+```{r}
+#creating combined dataframe
+wine_case_study <- bind_rows(
+  wine_low_quality_ %>% mutate(quality_group = "Lower Quality"),
+  wine_high_quality %>% mutate(quality_group = "Higher Quality")
+)
+glimpse(wine_case_study)
+```
+#### Cheking missing for missing values 
+```{r}
+sum(is.na(wine_case_study))
+colSums(is.na(wine_case_study))
+```
+#### Checking unique entries eliminating  duplicates
+```{r}
+wine_case_study_clean <- unique(wine_case_study)
+glimpse(wine_case_study_clean)
+
+# The dataset had 230 uniques entries  
+```
+
+#### Adjusting data
+```{r}
+#Transforming the columns quality_group into factor for statistical purposes.
+wine_case_study_clean <- wine_case_study_clean %>%
+  mutate(quality_group = as.factor(quality_group))
+sapply(wine_case_study_clean, class)
+```
+
+#### 1- Fixed Acidity Welch’s t-test and Visualization
+
+```{r}
+t.test(`fixed acidity` ~ quality_group, data = wine_case_study_clean, var.equal = FALSE)
+```
+```{r}
+ggplot(wine_case_study_clean, aes(x = quality_group, y = `fixed acidity`, fill = quality_group)) +
+  geom_boxplot() +
+  labs(title = "Boxplot of Fixed Acidity by Quality Group", x = "Quality Group", y = "Fixed Acidity") +
+  theme_minimal()
+```
+
+#### 2- Volatile Acidity Welch’s t-test and Visualization
+
+```{r}
+t.test(`volatile acidity` ~ quality_group, data = wine_case_study_clean, var.equal = FALSE)
+```
+```{r}
+ggplot(wine_case_study_clean, aes(x = quality_group, y = `volatile acidity`, fill = quality_group)) +
+  geom_boxplot() +
+  labs(title = "Boxplot of Volatile Acidity by Quality Group", x = "Quality Group", y = "Volatile Acidity") +
+  theme_minimal()
+```
+
+#### 3- cCitric Acid Welch’s t-test and Visualization
+
+```{r}
+t.test(`citric acid` ~ quality_group, data = wine_case_study_clean, var.equal = FALSE)
+```
+```{r}
+ggplot(wine_case_study_clean, aes(x = quality_group, y = `citric acid`, fill = quality_group)) +
+  geom_boxplot() +
+  labs(title = "Boxplot of Citric Acid by Quality Group", x = "Quality Group", y = "Citric Acid") +
+  theme_minimal()
+```
+
+#### 4- Residual Sugar Welch’s t-test and Visuzaliation
+
+```{r}
+t.test(`residual sugar` ~ quality_group, data = wine_case_study_clean, var.equal = FALSE)
+```
+
+```{r}
+ggplot(wine_case_study_clean, aes(x = quality_group, y = `residual sugar`, fill = quality_group)) +
+  geom_boxplot() +
+  labs(title = "Boxplot of Residual sugar by Quality Group", x = "Quality Group", y = "Residual sugar") +
+  theme_minimal()
+```
+
+#### 5- Chlorides Welch’s t-test and Visualization
+
+```{r}
+t.test(`chlorides` ~ quality_group, data = wine_case_study_clean, var.equal = FALSE)
+```
+```{r}
+ggplot(wine_case_study_clean, aes(x = quality_group, y = `chlorides`, fill = quality_group)) +
+  geom_boxplot() +
+  labs(title = "Boxplot of Chlorides by Quality Group", x = "Quality Group", y = "Chlorides") +
+  theme_minimal()
+```
+
+#### 6- Free Sulfur Dioxide Welch’s t-test and Visualization
+
+```{r}
+t.test(`free sulfur dioxide` ~ quality_group, data = wine_case_study_clean, var.equal = FALSE)
+```
+```{r}
+ggplot(wine_case_study_clean, aes(x = quality_group, y = `free sulfur dioxide`, fill = quality_group)) +
+  geom_boxplot() +
+  labs(title = "Boxplot of Free Sulfur Dioxide by Quality Group", x = "Quality Group", y = "Free Sulfur Dioxide") +
+  theme_minimal()
+```
+
+#### 7- Total Sulfur Dioxide Welch’s t-test and Visualization
+
+```{r}
+t.test(`total sulfur dioxide` ~ quality_group, data = wine_case_study_clean, var.equal = FALSE)
+```
+```{r}
+ggplot(wine_case_study_clean, aes(x = quality_group, y = `total sulfur dioxide`, fill = quality_group)) +
+  geom_boxplot() +
+  labs(title = "Boxplot of Total Sulfur Dioxide by Quality Group", x = "Quality Group", y = "Total Sulfur Dioxide") +
+  theme_minimal()
+```
+
+#### 8- Density Welch’s t-test and Visualization
+
+```{r}
+t.test(`density` ~ quality_group, data = wine_case_study_clean, var.equal = FALSE)
+```
+```{r}
+ggplot(wine_case_study_clean, aes(x = quality_group, y = `density`, fill = quality_group)) +
+  geom_boxplot() +
+  labs(title = "Boxplot of Density by Quality Group", x = "Quality Group", y = "Density") +
+  theme_minimal()
+```
+
+#### 9- pH Welch’s t-test and Visualization
+
+```{r}
+t.test(`pH` ~ quality_group, data = wine_case_study_clean, var.equal = FALSE)
+```
+```{r}
+ggplot(wine_case_study_clean, aes(x = quality_group, y = `pH`, fill = quality_group)) +
+  geom_boxplot() +
+  labs(title = "Boxplot of pH by Quality Group", x = "Quality Group", y = "pH") +
+  theme_minimal()
+```
+
+#### 10- Sulphates Welch’s t-test and Visualization
+
+```{r}
+t.test(`sulphates` ~ quality_group, data = wine_case_study_clean, var.equal = FALSE)
+```
+```{r}
+ggplot(wine_case_study_clean, aes(x = quality_group, y = `sulphates`, fill = quality_group)) +
+  geom_boxplot() +
+  labs(title = "Boxplot of Sulphates by Quality Group", x = "Quality Group", y = "Sulphates") +
+  theme_minimal()
+```
+
+#### 11- Alcohol Welch’s t-test and Visualization
+
+```{r}
+t.test(`alcohol` ~ quality_group, data = wine_case_study_clean, var.equal = FALSE)
+```
+
+```{r}
+ggplot(wine_case_study_clean, aes(x = quality_group, y = `alcohol`, fill = quality_group)) +
+  geom_boxplot() +
+  labs(title = "Boxplot of Alcohol by Quality Group", x = "Quality Group", y = "Alcohol") +
+  theme_minimal()
+```
+
+
+#### Applying The Benjamini-Hochberg Procedure for p-values correction
+
+```{r}
+#storing all the p-values in one variable
+p_values <- c(
+  t.test(`fixed acidity` ~ quality_group, data = wine_case_study_clean, var.equal = FALSE)$p.value,
+  t.test(`volatile acidity` ~ quality_group, data = wine_case_study_clean, var.equal = FALSE)$p.value,
+  t.test(`citric acid` ~ quality_group, data = wine_case_study_clean, var.equal = FALSE)$p.value,
+  t.test(`residual sugar` ~ quality_group, data = wine_case_study_clean, var.equal = FALSE)$p.value,
+  t.test(`chlorides` ~ quality_group, data = wine_case_study_clean, var.equal = FALSE)$p.value,
+  t.test(`free sulfur dioxide` ~ quality_group, data = wine_case_study_clean, var.equal = FALSE)$p.value,
+  t.test(`total sulfur dioxide` ~ quality_group, data = wine_case_study_clean, var.equal = FALSE)$p.value,
+  t.test(`density` ~ quality_group, data = wine_case_study_clean, var.equal = FALSE)$p.value,
+  t.test(`pH` ~ quality_group, data = wine_case_study_clean, var.equal = FALSE)$p.value,
+  t.test(`sulphates` ~ quality_group, data = wine_case_study_clean, var.equal = FALSE)$p.value,
+  t.test(`alcohol` ~ quality_group, data = wine_case_study_clean, var.equal = FALSE)$p.value
+)
+print(p_values)
+#apllying bh correction for p-values
+bh_p_values <- p.adjust(p_values, method = "BH")
+print(bh_p_values)
+```
+
+## 5. Results
+
+#### Creating one dataframe with all p-values results
+```{r}
+#creating the variable  attibutes for dataframe
+
+attributes <- c("fixed acidity", "volatile acidity", "citric acid", "residual sugar", 
+                "chlorides", "free sulfur dioxide", "total sulfur dioxide", 
+                "density", "pH", "sulphates", "alcohol")
+```
+```{r}
+#creating variables with the t-tests and BH test results
+reject_h0_bh_test <- ifelse(bh_p_values <= 0.05, "Reject H₀", "Fail to Reject H₀")
+reject_h0_ttest <- ifelse(p_values <= 0.05, "Reject H₀", "Fail to Reject H₀")
+```
+```{r}
+#creating table with results
+p_value_results <-tibble(
+  factors = attributes,
+  bh_p_values = bh_p_values,
+  t_test_p_values = p_values,
+  reject_h0_bh_test = reject_h0_bh_test,
+  reject_h0_ttest = reject_h0_ttest)
+
+datatable(p_value_results)
+```
+#### 5.a Results interpretation
+
+##### 5.a.1. Fixed Acidity
+  The comparison of fixed acidity between higher and lower-quality wines showed a statistically significant difference (p = 0.000198). This indicates that the null hypothesis, which posited no difference in fixed acidity between the two groups, was rejected. The higher-quality wines had a mean fixed acidity of 8.86, compared to 7.87 in lower-quality wines, suggesting that fixed acidity may influence wine quality.
+
+#####  5.a.2. Volatile Acidity
+  A significant difference was observed in volatile acidity between the higher and lower-quality wines (p = 5.311e-15). The null hypothesis was rejected, with the higher-quality wines having a lower mean volatile acidity (0.40) compared to lower-quality wines (0.72). This suggests that lower volatile acidity could be a characteristic associated with higher wine quality.
+
+#####  5.a.3. Citric Acid
+  For citric acid, a significant difference was found between the two groups (p = 1.84e-09). The null hypothesis was rejected. Higher-quality wines had a mean citric acid content of 0.37, while lower-quality wines had 0.17. This indicates that higher citric acid content could be linked to higher wine quality.
+
+#####  5.a.4. Residual Sugar
+  Residual sugar showed no significant difference between higher and lower-quality wines (p = 0.8956). The null hypothesis was not rejected, indicating that residual sugar does not appear to have a significant impact on wine quality in this dataset.
+
+#####  5.a.5. Chlorides
+  Chlorides also showed no significant difference between the two quality groups (p = 0.05707). The null hypothesis was not rejected, suggesting that chloride content is not a key factor distinguishing higher and lower-quality wines in this sample.
+
+#####  5.a.6. Free Sulfur Dioxide
+  No significant difference was found in free sulfur dioxide between the two groups (p = 0.1674). The null hypothesis was not rejected, indicating that free sulfur dioxide levels are not a significant factor in determining wine quality in this study.
+
+#####  5.a.7. Total Sulfur Dioxide
+  Similarly, total sulfur dioxide did not show a significant difference between higher and lower-quality wines (p = 0.8153). The null hypothesis was not rejected, suggesting that total sulfur dioxide does not influence wine quality in this dataset.
+
+#####  5.a.8. Density
+  A significant difference was found in density between the higher and lower-quality wines (p = 0.01834). The null hypothesis was rejected, with higher-quality wines having a slightly lower mean density (0.9961) compared to lower-quality wines (0.9967), indicating that density could play a role in determining wine quality.
+
+#####  5.a.9. pH
+  The pH levels also differed significantly between the two quality groups (p = 0.0002718). The null hypothesis was rejected. Higher-quality wines had a mean pH of 3.29, while lower-quality wines had a pH of 3.38. This suggests that pH may be another factor contributing to wine quality.
+
+#####  5.a.10. Sulphates
+  A significant difference was observed in sulphates between the two groups (p = 3.484e-06). The null hypothesis was rejected, with higher-quality wines having a higher mean sulphate content (0.74) compared to lower-quality wines (0.59). This suggests that sulphate content may be a contributing factor to higher wine quality.
+
+#####  5.a.11. Alcohol
+  Alcohol content was significantly higher in higher-quality wines (mean = 11.49) compared to lower-quality wines (mean = 10.22), with a p-value of 1.26e-15. The null hypothesis was rejected, indicating that alcohol content is likely a key factor influencing wine quality.
+
+## 6. Discussion
+
+  The results of the p-values demonstrated that the differences in the quality ratings provided by wine experts may be influenced by the physicochemical properties of the wines. These properties are known to affect wine taste, and the data presented in this study support this relationship. For example, alcohol content was higher in wines with higher quality ratings, and the null hypothesis was rejected for this property. This suggests that alcohol content could influence the taste and might be a preference for wine experts when evaluating wine quality. However, this study does not address human tasting preferences in depth, which could provide more detailed insights into the factors that drive expert evaluations. Further research into sensory analysis could offer a more comprehensive understanding of how these physicochemical properties are perceived in the context of wine tasting.
+
+## 7. conclusion
+
+  The rejection of the null hypothesis for several properties implies that these physicochemical characteristics could be critical factors for wine experts when assessing quality. Further research is needed to better understand the role of these properties in the wine tasting process, and to explore potential interactions between the various physicochemical factors.
+
+In conclusion, this study provides valuable insights into the physicochemical attributes that contribute to wine quality, which could help producers improve their product and guide consumers in making more informed wine choices.
+
+
+## 8. References
+
+Grand View Research. 2024. U.S. Wine Market Size, Share & Trends Analysis Report. Accessed March 8, 2025. https://www.grandviewresearch.com/industry-analysis/us-wine-market.
+
+Cortez, P., Cerdeira, A., Almeida, F., Matos, T., & Reis, J. (2009). Modeling wine preferences by data mining from physicochemical properties. Retrieved from https://people.stat.sc.edu/hoyen/STAT540/Exam/Wine.pdf
+
