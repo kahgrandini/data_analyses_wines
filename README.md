@@ -1,5 +1,5 @@
 # 🍷 Wine Quality Analysis - Case Study
-Author: karina grandini Cramer
+Author: karina Grandini Cramer
 
 folder: red-wine-statistical-analise.ipynb
 
