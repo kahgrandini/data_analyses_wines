@@ -29,5 +29,4 @@ Availabe on " figure-latex "
 
 ## 🚀 How to Run
 ```bash
-https://www.kaggle.com/code/karinagrandini/red-wine-statistical-analise/edit/run/227268945
-
+https://www.kaggle.com/code/karinagrandini/red-wine-statistical-analise
