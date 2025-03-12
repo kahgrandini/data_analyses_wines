@@ -1,6 +1,7 @@
 # 🍷 Wine Quality Analysis - Case Study
+Author: karina grandini Cramer
 
-red-wine-statistical-analise.ipynb
+folder: red-wine-statistical-analise.ipynb
 
 ## 📖 Overview
 This project is part of "Google Data Analise" certification. The analyzes is based on physicochemical properties of wine to determine their relationship with wine quality tasting. Using data analysis and visualization techniques, we explore factors that influence wine ratings.
