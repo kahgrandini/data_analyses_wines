@@ -1,2 +1,33 @@
-# data_analyses_wines
-This case study is part of "Google data Analise certification" program.
+# 🍷 Wine Quality Analysis - Case Study
+
+## 📖 Overview
+This project is part of "Google Data Analise" certification. The analyzes is based on physicochemical properties of wine to determine their relationship with wine quality tasting. Using data analysis and visualization techniques, we explore factors that influence wine ratings.
+
+## 📂 Dataset
+- **Source:** https://archive.ics.uci.edu/dataset/109/wine
+- **Description:** The dataset contains physicochemical properties and sensory quality ratings of red and white wines.
+- **Key Features:**
+  - Acidity, pH, alcohol content, etc.
+  - Sensory ratings from experts.
+
+## 🎯 Objectives
+- Identify key physicochemical properties affecting wine quality when tasting.
+- Perform statistical analysis and visualization.
+
+## 🛠️ Tools & Libraries
+- **R programming** 
+- **Jupyter Notebook / Kaggle**
+- **VS Code** for development
+
+## 📊 Methodology
+1. **Data Cleaning:** Handling missing values, duplicates and transformations.
+2. **Exploratory Data Analysis (EDA):** Visualizing correlations.
+3. **Hypothesis Testing:** Checking statistical significance of features.
+
+## 📈 Visualizations
+Availabe on " figure-latex "
+
+## 🚀 How to Run
+```bash
+https://www.kaggle.com/code/karinagrandini/red-wine-statistical-analise/edit/run/227268945
+
