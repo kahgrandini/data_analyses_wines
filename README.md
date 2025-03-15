@@ -4,7 +4,7 @@ Author: karina Grandini Cramer
 folder: red-wine-statistical-analise.ipynb
 
 ## 📖 Overview
-This project is a capstone for "Google Data Analise certification". The analyzes is based on physicochemical properties of wine to determine their relationship with wine quality tasting. Using data analysis and visualization techniques, we explore factors that influence wine ratings.
+This project is a capstone for "Google Data Analyses certification". The analyzes is based on physicochemical properties of wine to determine their relationship with wine quality tasting. Using data analysis and visualization techniques, we explore factors that influence wine ratings.
 
 ## 📂 Dataset
 - **Source:** https://archive.ics.uci.edu/dataset/109/wine
